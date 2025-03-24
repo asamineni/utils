@@ -8,12 +8,14 @@ TOPICS=$(bin/kafka-topics.sh --bootstrap-server "$BOOTSTRAP_SERVERS" --list)
 
 # Iterate through each topic
 for TOPIC in $TOPICS; do
-  # Describe the topic and extract the replication factor
-  DESCRIPTION=$(bin/kafka-topics.sh --bootstrap-server "$BOOTSTRAP_SERVERS" --describe --topic "$TOPIC")
-  REPLICATION_FACTOR=$(echo "$DESCRIPTION" | grep "ReplicationFactor:" | awk '{print $2}')
+  # Describe the topic
+  DESCRIPTION=$(bin/kafka-topics.sh --bootstrap-server "$BOOTSTRAP_SERVERS" --describe --topic "$TOPIC" 2>/dev/null) #added 2>/dev/null to discard errors.
 
-  # Check if the replication factor is greater than 3
-  if [[ "$REPLICATION_FACTOR" -gt 3 ]]; then
+  # Extract the replication factor using a more robust method
+  REPLICATION_FACTOR=$(echo "$DESCRIPTION" | grep -oP "ReplicationFactor: \K\d+")
+
+  # Check if the replication factor is a number and greater than 3
+  if [[ -n "$REPLICATION_FACTOR" ]] && [[ "$REPLICATION_FACTOR" -gt 3 ]]; then
     echo "Topic: $TOPIC, Replication Factor: $REPLICATION_FACTOR"
   fi
 done
