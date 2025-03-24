@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Replace <your_bootstrap_servers> with your Kafka bootstrap servers
+BOOTSTRAP_SERVERS="localhost:9092"
+
+# Get the list of topics
+TOPICS=$(bin/kafka-topics.sh --bootstrap-server "$BOOTSTRAP_SERVERS" --list)
+
+# Iterate through each topic
+for TOPIC in $TOPICS; do
+  # Describe the topic and extract the replication factor
+  DESCRIPTION=$(bin/kafka-topics.sh --bootstrap-server "$BOOTSTRAP_SERVERS" --describe --topic "$TOPIC")
+  REPLICATION_FACTOR=$(echo "$DESCRIPTION" | grep "ReplicationFactor:" | awk '{print $2}')
+
+  # Check if the replication factor is greater than 3
+  if [[ "$REPLICATION_FACTOR" -gt 3 ]]; then
+    echo "Topic: $TOPIC, Replication Factor: $REPLICATION_FACTOR"
+  fi
+done
